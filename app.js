@@ -9,7 +9,7 @@ const PLAYER_TAGS = [
   '#QU99UQLRU',
 ];
 
-const COC_API = '/.netlify/functions';
+const COC_API = 'https://api.clashofclans.com/v1';
 
 const DARK_TROOPS = new Set([
   'Minion', 'Hog Rider', 'Valkyrie', 'Golem', 'Witch', 'Lava Hound',
@@ -57,6 +57,7 @@ const WALL_COUNTS = {
 // ── State ────────────────────────────────────────────────────────────────────
 
 let state = {
+  apiKey: '',
   players: {},      // tag -> { data, error, loading, lastFetched }
   view: 'overview', // 'overview' | 'detail'
   detailTag: null,
@@ -68,7 +69,9 @@ let state = {
 
 async function fetchPlayer(tag) {
   const encoded = encodeURIComponent(tag);
-  const res = await fetch(`${COC_API}/player?tag=${encoded}`);
+  const res = await fetch(`${COC_API}/players/${encoded}`, {
+    headers: { Authorization: `Bearer ${state.apiKey}` },
+  });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.message || `HTTP ${res.status}`);
@@ -212,6 +215,33 @@ function progressBar(value, isMaxed = false) {
 
 // ── Views ─────────────────────────────────────────────────────────────────────
 
+
+function renderSetup() {
+  const form = el('div', { class: 'setup-form' },
+    el('input', {
+      type: 'text', id: 'api-key-input',
+      placeholder: 'Bearer token from developer.clashofclans.com',
+      autocomplete: 'off', spellcheck: 'false',
+    }),
+    el('button', {
+      class: 'btn btn-primary',
+      onclick() {
+        const key = document.getElementById('api-key-input').value.trim();
+        if (!key) return;
+        state.apiKey = key;
+        localStorage.setItem('coc_api_key', key);
+        refreshAll();
+        render();
+      },
+    }, 'Connect →'),
+  );
+  return el('div', { class: 'setup-screen' },
+    el('div', { class: 'setup-logo' }, '⚔️'),
+    el('h1', {}, 'COC Tracker'),
+    el('p', {}, 'Enter your API key from developer.clashofclans.com'),
+    form,
+  );
+}
 
 function renderOverview() {
   const cards = PLAYER_TAGS.map(tag => {
@@ -559,6 +589,11 @@ function render() {
   const app = document.getElementById('app');
   app.innerHTML = '';
 
+  if (!state.apiKey) {
+    app.appendChild(renderSetup());
+    return;
+  }
+
   if (state.view === 'detail' && state.detailTag) {
     app.appendChild(renderDetail());
     return;
@@ -584,7 +619,12 @@ function render() {
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 function init() {
-  refreshAll();
+  const saved = window.COC_DEFAULT_KEY || localStorage.getItem('coc_api_key') || '';
+  if (saved) {
+    state.apiKey = saved;
+    localStorage.setItem('coc_api_key', saved);
+    refreshAll();
+  }
   render();
 }
 
