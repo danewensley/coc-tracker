@@ -9,7 +9,7 @@ const PLAYER_TAGS = [
   '#QU99UQLRU',
 ];
 
-const COC_API = '/api';
+const COC_API = '/.netlify/functions';
 
 const DARK_TROOPS = new Set([
   'Minion', 'Hog Rider', 'Valkyrie', 'Golem', 'Witch', 'Lava Hound',
