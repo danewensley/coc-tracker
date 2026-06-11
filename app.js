@@ -9,7 +9,7 @@ const PLAYER_TAGS = [
   '#QU99UQLRU',
 ];
 
-const COC_API = 'https://api.clashofclans.com/v1';
+const COC_API = 'https://cocproxy.royaleapi.dev/v1';
 
 const DARK_TROOPS = new Set([
   'Minion', 'Hog Rider', 'Valkyrie', 'Golem', 'Witch', 'Lava Hound',
